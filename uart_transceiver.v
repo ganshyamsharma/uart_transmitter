@@ -1,3 +1,4 @@
+
 module uart_tx #(parameter clk_per_bit = 10417) // equals to clk divided by baud rate 100mhz/9.6khz
 (
 	input i_clk, i_tx_start,
@@ -24,7 +25,7 @@ module uart_tx #(parameter clk_per_bit = 10417) // equals to clk divided by baud
 				end
 			s_tx_start_bit:
 				begin
-					r_next_state = (r_clk_count == clk_per_bit) ? s_tx_data : s_tx_start_bit;
+					r_next_state = (r_clk_count == clk_per_bit-1) ? s_tx_data : s_tx_start_bit;
 				end
 			s_tx_data:
 				begin
@@ -32,7 +33,11 @@ module uart_tx #(parameter clk_per_bit = 10417) // equals to clk divided by baud
 				end
 			s_tx_stop_bit:
 				begin
-					r_next_state = (r_clk_count == clk_per_bit) ? s_final : s_tx_stop_bit;
+					r_next_state = (r_clk_count == clk_per_bit-1) ? s_final : s_tx_stop_bit;
+				end
+			s_final:
+				begin
+					r_next_state = s_idle;
 				end
 			default: 
 				begin
@@ -44,9 +49,40 @@ module uart_tx #(parameter clk_per_bit = 10417) // equals to clk divided by baud
 	always @(posedge clk) begin
 		r_state <= r_next_state;
 		case(r_state)
-			
+			s_tx_start_bit:
+				begin										
+					if(r_clk_count == clk_per_bit-1) begin
+						r_clk_count <= 0;
+						r_byte_data <= i_tx_byte;
+					end
+					else
+						r_clk_count <= r_clk_count + 1;
+				end
+			s_tx_data:
+				begin
+					if(r_bit_index < 8) begin
+						if(r_clk_count == clk_per_bit-1) begin
+							r_bit_index <= r_bit_index + 1;
+							r_clk_count <= 0;
+						end
+						else begin
+							r_clk_count <= r_clk_count + 1;
+							o_tx_serial_data <= r_byte_data[r_bit_index];
+						end
+					end
+					else
+						r_bit_index <= 0;	
+				end
+			s_tx_stop_bit:
+				begin
+					o_tx_serial_data <= 1;
+					if(r_clk_count == clk_per_bit-1)
+						r_clk_count <= 0;
+					else
+						r_clk_count <= r_clk_count + 1;
+				end
+		endcase
 	end
-	
 	assign o_tx_busy = (r_state == s_tx_start_bit) | (r_state == s_tx_data) | (r_state == s_tx_stop_bit) | (r_state == s_final);
 	assign o_tx_done = (r_state == s_final);
 endmodule
