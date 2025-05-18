@@ -1,4 +1,3 @@
-
 module uart_tx #(parameter clk_per_bit = 10417) // equals to clk divided by baud rate 100mhz/9.6khz
 (
 	input i_clk, i_tx_start,
@@ -8,15 +7,15 @@ module uart_tx #(parameter clk_per_bit = 10417) // equals to clk divided by baud
 );
 	reg [7:0] r_byte_data;
 	reg [2:0] r_state = 0, r_next_state;
-	reg [$clog2(10417)-1 : 0] r_clk_count;
-	reg [2:0] r_bit_index;
+	reg [$clog2(clk_per_bit)-1 : 0] r_clk_count = 0;
+	reg [3:0] r_bit_index = 0;
 	
-	parameter s_idle = 0;
-	parameter s_tx_start_bit = 1;
-	parameter s_tx_data = 2;
-	parameter s_tx_stop_bit = 3;
-	parameter s_final = 4;
-	
+	parameter s_idle = 3'd0;
+	parameter s_tx_start_bit = 3'd1;
+	parameter s_tx_data = 3'd2;
+	parameter s_tx_stop_bit = 3'd3;
+	parameter s_final = 3'd4;
+	///////////////////////////////////////	State Transition Logic	/////////////////////////////////
 	always @(*) begin
 		case(r_state)
 			s_idle:
@@ -29,7 +28,7 @@ module uart_tx #(parameter clk_per_bit = 10417) // equals to clk divided by baud
 				end
 			s_tx_data:
 				begin
-					r_next_state = (r_bit_index == 7) ? s_tx_stop_bit : s_tx_data;
+					r_next_state = (r_bit_index == 8) ? s_tx_stop_bit : s_tx_data;
 				end
 			s_tx_stop_bit:
 				begin
@@ -45,15 +44,16 @@ module uart_tx #(parameter clk_per_bit = 10417) // equals to clk divided by baud
 				end
 		endcase
 	end
-	
-	always @(posedge clk) begin
+	///////////////////////////////////////	
+	always @(posedge i_clk) begin
 		r_state <= r_next_state;
 		case(r_state)
 			s_tx_start_bit:
-				begin										
+				begin	
+				    o_tx_serial_data <= 1'b0;	
+				    r_byte_data <= i_tx_byte;								
 					if(r_clk_count == clk_per_bit-1) begin
-						r_clk_count <= 0;
-						r_byte_data <= i_tx_byte;
+						r_clk_count <= 0;					
 					end
 					else
 						r_clk_count <= r_clk_count + 1;
@@ -81,8 +81,11 @@ module uart_tx #(parameter clk_per_bit = 10417) // equals to clk divided by baud
 					else
 						r_clk_count <= r_clk_count + 1;
 				end
-		endcase
+	endcase
 	end
+	//////////////////////////////////////	State Outputs	/////////////////////////////////////////////////
+	
 	assign o_tx_busy = (r_state == s_tx_start_bit) | (r_state == s_tx_data) | (r_state == s_tx_stop_bit) | (r_state == s_final);
 	assign o_tx_done = (r_state == s_final);
+	
 endmodule
