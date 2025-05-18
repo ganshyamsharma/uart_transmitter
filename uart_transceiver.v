@@ -44,7 +44,7 @@ module uart_tx #(parameter clk_per_bit = 10417) // equals to clk divided by baud
 				end
 		endcase
 	end
-	///////////////////////////////////////	
+	///////////////////////////////////////	Data Transmission	/////////////////////////////////////
 	always @(posedge i_clk) begin
 		r_state <= r_next_state;
 		case(r_state)
