@@ -83,8 +83,7 @@ module uart_tx #(parameter clk_per_bit = 10417) // equals to clk divided by baud
 				end
 	endcase
 	end
-	//////////////////////////////////////	State Outputs	/////////////////////////////////////////////////
-	
+	//////////////////////////////////////	State Outputs	///////////////////////////////////////////
 	assign o_tx_busy = (r_state == s_tx_start_bit) | (r_state == s_tx_data) | (r_state == s_tx_stop_bit) | (r_state == s_final);
 	assign o_tx_done = (r_state == s_final);
 	
