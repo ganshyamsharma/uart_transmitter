@@ -1,2 +1,4 @@
 # uart_transmitter
-Converts 8 bit parallel data into serial data according to uart protocol
+-Implementation of UART protocol
+-To change the baud rate, change the clk_per_bit parameter in the code
+
