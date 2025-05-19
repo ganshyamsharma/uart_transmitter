@@ -3,6 +3,6 @@
 - To change the baud rate, change the "clk_per_bit" parameter in the code as per the comment  
 - Data packet consist of single stop bit and no parity bit
 ## IO Description
-- tx_start: To begin the data transmission process
+- i_tx_start: Turn high to begin the data transmission process
 - 
 
