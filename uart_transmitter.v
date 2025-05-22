@@ -10,11 +10,11 @@ module uart_tx #(parameter clk_per_bit = 10417) // equals to clk divided by baud
 	reg [$clog2(clk_per_bit)-1 : 0] r_clk_count = 0;
 	reg [3:0] r_bit_index = 0;
 	
-	parameter s_idle = 3'd0;
-	parameter s_tx_start_bit = 3'd1;
-	parameter s_tx_data = 3'd2;
-	parameter s_tx_stop_bit = 3'd3;
-	parameter s_final = 3'd4;
+	localparam s_idle = 3'd0;
+	localparam s_tx_start_bit = 3'd1;
+	localparam s_tx_data = 3'd2;
+	localparam s_tx_stop_bit = 3'd3;
+	localparam s_final = 3'd4;
 	///////////////////////////////////////	State Transition Logic	/////////////////////////////////
 	always @(*) begin
 		case(r_state)
